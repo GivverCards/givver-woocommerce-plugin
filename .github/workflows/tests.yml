@@ -1,0 +1,38 @@
+name: Tests
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    runs-on: self-hosted
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["7.4", "8.2"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Lint PHP
+        run: find . -name "*.php" -not -path "./.git/*" -print0 | xargs -0 -n1 php -l
+
+      - name: Run CLI tests
+        run: |
+          set -e
+          for f in tests/*.php; do
+            echo "::group::$f"
+            php "$f"
+            echo "::endgroup::"
+          done

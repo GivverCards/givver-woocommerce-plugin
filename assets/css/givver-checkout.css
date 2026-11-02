@@ -1,0 +1,42 @@
+/* Givver card form styling */
+
+.wc-givver-card-form {
+    margin-top: 10px;
+}
+
+.givver-card-row {
+    margin-bottom: 12px;
+}
+
+.givver-card-number-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.givver-card-number-wrapper input {
+    flex: 1;
+    padding-right: 40px;
+}
+
+.givver-card-brand {
+    position: absolute;
+    right: 10px;
+    width: 26px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Expiry + CVC layout */
+.givver-card-row--exp-cvc {
+    display: flex;
+    gap: 10px;
+}
+
+.givver-card-row--exp-cvc .givver-card-expiry,
+.givver-card-row--exp-cvc .givver-card-cvc {
+    flex: 1;
+}
