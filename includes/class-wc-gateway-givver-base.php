@@ -86,7 +86,17 @@ abstract class WC_Gateway_Givver_Base extends WC_Payment_Gateway {
 
         $this->init_form_fields();
         $this->init_settings();
+        $this->load_settings();
 
+        add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+    }
+
+    /**
+     * Copy saved settings into properties.
+     * WC_Settings_API::process_admin_options() only updates $this->settings,
+     * so this runs again after a save to pick up the new keys and mode.
+     */
+    protected function load_settings() {
         $this->title                = $this->get_option( 'title' );
         $this->description          = $this->get_option( 'description' );
         $this->enabled              = $this->get_option( 'enabled', 'no' );
@@ -99,8 +109,16 @@ abstract class WC_Gateway_Givver_Base extends WC_Payment_Gateway {
         $this->capture_type         = 'capture';
         $this->api_endpoint         = $this->get_option( 'api_endpoint', 'https://api.givver.cards' );
         $this->debug                = 'yes' === $this->get_option( 'debug', 'no' );
+    }
 
-        add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+    /**
+     * Secret API key for the current mode.
+     *
+     * @return string
+     */
+    public function get_secret_key() {
+        $use_test = ( 'yes' === $this->testmode );
+        return trim( (string) ( $use_test ? $this->test_secret_key : $this->secret_key ) );
     }
 
     /**

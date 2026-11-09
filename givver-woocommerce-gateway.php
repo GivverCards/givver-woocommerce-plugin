@@ -215,7 +215,8 @@ function givver_activate() {
 
 /**
  * Persist the Givver webhook signing secret and required events after install/upgrade.
- * No-ops once the secret and payment.succeeded / payment.failed subscription are stored.
+ * No-ops while the stored endpoint matches the webhook URL, the current Secret API key, and the
+ * payment.succeeded / payment.failed subscription.
  */
 function givver_maybe_ensure_webhook() {
     if ( ! function_exists( 'WC' ) || ! WC()->payment_gateways() ) {

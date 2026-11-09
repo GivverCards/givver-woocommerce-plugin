@@ -66,20 +66,35 @@ class Givver_Webhook {
     }
 
     /**
+     * Fingerprint of the Secret API key that registered the endpoint.
+     * Stored instead of the key itself so a key change is detected without keeping a second copy.
+     *
+     * @param string $secret_key
+     * @return string
+     */
+    public static function key_fingerprint( $secret_key ) {
+        $secret_key = trim( (string) $secret_key );
+        return '' === $secret_key ? '' : hash( 'sha256', $secret_key );
+    }
+
+    /**
      * Persist the webhook secret shown once on create/rotate.
      *
-     * @param string $mode   test|live
-     * @param string $id     Givver webhook endpoint id
-     * @param string $secret Plain webhook signing secret
-     * @param string $url    Registered URL
+     * @param string   $mode            test|live
+     * @param string   $id              Givver webhook endpoint id
+     * @param string   $secret          Plain webhook signing secret
+     * @param string   $url             Registered URL
+     * @param string[] $events
+     * @param string   $key_fingerprint key_fingerprint() of the Secret API key used
      */
-    public static function save_for_mode( $mode, $id, $secret, $url, $events = array() ) {
+    public static function save_for_mode( $mode, $id, $secret, $url, $events = array(), $key_fingerprint = '' ) {
         $stored           = self::get_stored();
         $stored[ $mode ]  = array(
             'id'     => (string) $id,
             'secret' => (string) $secret,
             'url'    => (string) $url,
             'events' => array_values( $events ),
+            'key'    => (string) $key_fingerprint,
         );
         update_option( self::OPTION_KEY, $stored, false );
     }
@@ -103,30 +118,33 @@ class Givver_Webhook {
     }
 
     /**
-     * Remember which events the stored endpoint subscribes to, without rotating the secret.
+     * Why the stored endpoint cannot be used as is, or '' when it is registered
+     * for this URL, Secret API key, and events.
      *
      * @param string   $mode
-     * @param string[] $events
+     * @param string   $url
+     * @param string   $key_fingerprint
+     * @param string[] $required_events
+     * @return string
      */
-    public static function save_events_for_mode( $mode, $events ) {
-        $stored = self::get_stored();
-        if ( empty( $stored[ $mode ] ) || ! is_array( $stored[ $mode ] ) ) {
-            return;
-        }
-        $stored[ $mode ]['events'] = array_values( $events );
-        update_option( self::OPTION_KEY, $stored, false );
-    }
-
-    /**
-     * True when this site already has a signing secret for the current webhook URL.
-     *
-     * @param string $mode
-     * @param string $url
-     * @return bool
-     */
-    public static function is_configured_for( $mode, $url ) {
+    public static function reregister_reason( $mode, $url, $key_fingerprint, $required_events ) {
         $row = self::get_for_mode( $mode );
-        return ! empty( $row['secret'] ) && ! empty( $row['id'] ) && isset( $row['url'] ) && $row['url'] === $url;
+        if ( empty( $row['secret'] ) || empty( $row['id'] ) ) {
+            return 'no stored endpoint';
+        }
+        if ( ! isset( $row['url'] ) || $row['url'] !== $url ) {
+            return 'webhook URL changed';
+        }
+        if ( empty( $row['key'] ) ) {
+            return 'no stored key fingerprint';
+        }
+        if ( ! hash_equals( (string) $row['key'], (string) $key_fingerprint ) ) {
+            return 'secret API key changed';
+        }
+        if ( ! self::has_events( $mode, $required_events ) ) {
+            return 'missing events';
+        }
+        return '';
     }
 
     /**
