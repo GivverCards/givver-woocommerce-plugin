@@ -34,6 +34,20 @@ You'll need to provide credentials from your Givver Dashboard:
 | **Test Secret API Key (Admin API)** | Used for server-side API calls in Test mode|
 | **Sandbox / Test Mode** | Sandbox or Production mode |
 
+## Updating to 1.0.1
+
+No new settings. The plugin now keeps the Givver webhook in the store that matches the current Secret API key:
+
+- After you change the Secret API key and click **Save**, the webhook is registered in the store of the new key and the new signing secret is stored. Before, payments made after a key change could stay in Pending.
+- Clicking **Save** without changing keys checks the webhook in Givver. If Givver disabled it after failed deliveries, the plugin enables it again. If it was deleted, the plugin creates it again.
+- Switching back to a key the plugin already used reuses the same webhook, and no duplicate is created.
+
+Existing stores need no action. After the update, the next storefront request records the current key and keeps the stored signing secret.
+
+Keep only one webhook for your site's URL in each Givver store. If the store has several webhooks with the same URL, delete the extra ones in **Settings → Webhooks** and click **Save** in WooCommerce.
+
+Events sent while the webhook was disabled are not delivered again. Update those orders manually.
+
 ## Local development
 
 1. run WooCommerce instance locally

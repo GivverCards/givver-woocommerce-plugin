@@ -3,7 +3,7 @@
  * Plugin Name: Givver Payment Gateway for WooCommerce
  * Description: Givver payment gateway for WooCommerce (Credit Cards).
  * Author: Givver
- * Version: 1.0.0
+ * Version: 1.0.1
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * WC requires at least: 4.0
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'GIVVER_WC_VERSION', '1.0.0' );
+define( 'GIVVER_WC_VERSION', '1.0.1' );
 define( 'GIVVER_WC_PLUGIN_FILE', __FILE__ );
 define( 'GIVVER_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'GIVVER_WC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -215,7 +215,8 @@ function givver_activate() {
 
 /**
  * Persist the Givver webhook signing secret and required events after install/upgrade.
- * No-ops once the secret and payment.succeeded / payment.failed subscription are stored.
+ * No-ops while the stored endpoint matches the webhook URL, the current Secret API key, and the
+ * payment.succeeded / payment.failed subscription.
  */
 function givver_maybe_ensure_webhook() {
     if ( ! function_exists( 'WC' ) || ! WC()->payment_gateways() ) {

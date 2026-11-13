@@ -408,17 +408,17 @@ class Givver_API_Client {
     }
 
     /**
-     * Update webhook events (Admin API).
+     * Update a webhook endpoint (Admin API).
      *
      * PATCH /admin/webhook/:id
      *
-     * @param string   $id     Webhook endpoint id.
-     * @param string[] $events Event names.
+     * @param string $id     Webhook endpoint id.
+     * @param array  $fields Fields to change: events (string[]) and/or enabled (bool).
      * @return array|WP_Error
      */
-    public function update_webhook( $id, $events ) {
+    public function update_webhook( $id, $fields ) {
         $id = rawurlencode( (string) $id );
-        return $this->admin_patch( 'webhook/' . $id, array( 'events' => array_values( $events ) ) );
+        return $this->admin_patch( 'webhook/' . $id, $fields );
     }
 
     /**
